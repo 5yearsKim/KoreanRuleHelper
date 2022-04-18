@@ -19,6 +19,7 @@ rule_default = {
     'pos': None, # str | [str]
     '!pos': None, # str | [str]
     'return': False,
+    'optional': False,
 }
 
 
@@ -28,8 +29,7 @@ def tags2strlist(tags):
 def convert_rule(rule):
     template = rule_default.copy()
     if type(rule) is str:
-        rule = rule if rule == ' ' else rule.strip()
-        template.update({'surface': rule})
+        return rule
     elif type(rule) is dict:
         template.update(rule)
     return template
@@ -41,8 +41,18 @@ def is_common_pos(cand_pos, rule_pos):
                 return True
     return False 
 
+def check_match(parsed_list, rule, space_sensitive=False):
+    if isinstance(rule, str):
+        is_match, new_parsed_list = check_str_match(parsed_list, rule, space_sensitive=False)
+        return is_match, new_parsed_list
+    else:
+        is_match = check_rule_match(parsed_list[0], rule)
+        if is_match:
+            return is_match, parsed_list[1:]
+        else:
+            return is_match, None
 
-def check_match(parsed_item, rule_item):
+def check_rule_match(parsed_item, rule_item):
     to_list = lambda x : [x] if type(x) is not list else x
     surfaces = to_list(rule_item['surface']) if rule_item['surface'] else None
     poses = to_list(rule_item['pos']) if rule_item['pos'] else None
@@ -65,3 +75,36 @@ def check_match(parsed_item, rule_item):
         if is_common_pos(pos_cand, nposes):
             return False
     return True
+
+def check_str_match(parsed_list, rule, space_sensitive=False):
+    if space_sensitive:
+        rule = rule.strip()
+    else:
+        rule = rule.replace(' ', '')
+
+    # strip parsed
+    while parsed_list[0].surface.isspace() == '_':
+        parsed_list = parsed_list[1:]
+
+    for i, parsed in enumerate(parsed_list):
+        surf = parsed.surface
+        if surf.isspace() and not space_sensitive:
+            continue
+        if rule == '':
+            return True, parsed_list[i:]
+        if rule.startswith(surf) or surf.startswith(rule):
+            rule = rule[len(surf):]
+        else:
+            return False, None
+    if rule == '':
+        return True, parsed_list[i+1:] # index + 1 when parsed match rule
+    else:
+        return False, None
+
+if __name__ == '__main__':
+    import parser
+    sent = '내 꿈은 과학자가 되는 것이야.'
+    parser = parser.Parser()
+    parsed = parser(sent)
+    result = check_str_match(parsed, '내 꿈은', space_sensitive=False)
+    print(result)

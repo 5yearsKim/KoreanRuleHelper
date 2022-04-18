@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from korean_rule_helper import KoreanRuleHelper, KoreanSentence
 
 
-rh = KoreanRuleHelper()
+rh = KoreanRuleHelper(space_sensitive=False)
 
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -19,6 +19,10 @@ def test_order_one():
     tester = [
         (
             '내 꿈은 과학자야.',
+            [{'surface': '나', 'return': True}, {'pos': 'N', 'return': True }, {'!pos':['J', 'E', 'S'], 'return': True} ],
+        ),
+        (
+            '내 꿈은 사실 정말 대단한 과학자야.',
             [{'surface': '나', 'return': True}, {'pos': 'N', 'return': True }, {'!pos':['J', 'E', 'S'], 'return': True} ],
         ),
         (
@@ -35,13 +39,21 @@ def test_order_one():
         ),
         (
             '너 내 이름 뭔지 알아?',
-            ['너', '내', {'return': True}, {'surface': '알'}],
+            ['너내', {'return': True}, {'surface': '알'}],
         ),
+        (
+            '너 내 이름 뭔지 알아?',
+            ['너 내', {'return': True}, '알아?'],
+        ),
+        (
+            '너 내 이름이 뭔지 알아?',
+            ['너 내 이름', {'pos': 'J', 'optional': True}, {'return': True}, '알아?']
+        )
     ]
     for sent, rule in tester:
         print(rh.parse(sent))
         sent = KoreanSentence(sent)
-        result = rh.order_match(sent, rule, return_str=True)
+        result = rh.match(sent, rule, return_str=True)
         print(result, '$')
         print('---------------------')
 
