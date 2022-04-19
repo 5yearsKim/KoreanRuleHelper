@@ -6,7 +6,6 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 
 from korean_rule_helper import KoreanRuleHelper, KoreanSentence
-from korean_rule_helper.korean_rule_helper import KoreanSentence
 
 rh = KoreanRuleHelper()
 
@@ -48,4 +47,4 @@ def test_add_josa():
 
 
 if __name__ == "__main__":
-    test_strip()
+    test_replace()

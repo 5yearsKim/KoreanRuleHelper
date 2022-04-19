@@ -2,6 +2,8 @@ from .utils import convert_rule, check_match, tags2strlist, josa_rule
 import hgtk
 from .korean_sentence import parser
 
+class KoreanRuleError(Exception):
+    pass
 
 class KoreanRuleHelper:
     def __init__(self, space_sensitive=False):
@@ -9,16 +11,30 @@ class KoreanRuleHelper:
 
     def parse(self, sent):
         return parser(sent)
+ 
+    def _precheck_rules(self, rules):
+        for i, rule in enumerate(rules):
+            # optional following * is not allowed
+            try:
+                if i > 0 and rules[i-1] == '*' and rule['optional']:
+                    raise KoreanRuleError('optional rule following return rule is not allowed', rules)
+                if i > 0 and rules[i-1]['return'] and rule['optional']:
+                        raise KoreanRuleError('optional rule following return rule is not allowed', rules)
+            except TypeError:
+                pass
 
     def match(self, sentence, rule, return_str=True, strict=True):
         parsed = sentence.parsed
-        rule = list(map(convert_rule, rule))
+        rule = convert_rule(rule)
+        self._precheck_rules(rule)
         result, arg = self._match(parsed, rule, arg=[], tmp_arg=[], strict=strict)
         if arg and return_str:
             arg = list(map(lambda s: ''.join(tags2strlist(s)).strip(), arg))
         return result, arg
 
     def _match(self, parsed, rule_list, arg=[], tmp_arg=[], strict=True):
+        # print(parsed, rule_list)
+        # print('------')
         if not rule_list:
             if strict and len(parsed) > 0:
                 return False, None
@@ -26,8 +42,18 @@ class KoreanRuleHelper:
                 return True, arg
         if not parsed:
             return False, None
-        rule = rule_list[0]
 
+        rule = rule_list[0]
+        
+        if rule == '*':
+            if len(rule_list) <= 1:
+                return True, arg
+            next_rule = rule_list[1]
+            is_next_match, _ = check_match(parsed, next_rule, space_sensitive=self.space_sensitive)
+            if is_next_match:
+                return self._match(parsed, rule_list[1:], arg, [], strict=strict)
+            else:
+                return self._match(parsed[1:], rule_list, arg, [], strict=strict)
         # if rule is str ( exact matching )
         if isinstance(rule, str):
             is_match, new_parsed = check_match(parsed, rule, space_sensitive=self.space_sensitive)

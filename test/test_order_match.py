@@ -48,6 +48,13 @@ def test_order_one():
         (
             '너 내 이름이 뭔지 알아?',
             ['너 내 이름', {'pos': 'J', 'optional': True}, {'return': True}, '알아?']
+        ),
+        (
+            '근데 너 내 이름이 뭔지 알아?',
+            ['* 내 이름', {'pos': 'J', 'optional': True}, {'return': True}, '알아?']
+        ),
+        (   '너는 고기를 좋아해?',
+            ['너', {'pos': 'JX', 'optional': True},  {'return': True}, '좋아해?']
         )
     ]
     for sent, rule in tester:

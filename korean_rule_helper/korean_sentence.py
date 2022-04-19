@@ -1,3 +1,4 @@
+from lib2to3.pytree import convert
 from .parser import Parser
 from .utils import convert_rule, check_match, tags2strlist
 from copy import deepcopy
@@ -25,11 +26,11 @@ class KoreanSentence:
     def replace(self, rules, expression):
         if type(rules) is not list:
             rules = [rules]
-        rules = list(map(convert_rule, rules))
+        rules = convert_rule(rules)
         sent = deepcopy(self)
         for tag in sent.parsed:
             for rule in rules: 
-                if check_match(tag, rule):
+                if check_match([tag], rule)[0]:
                     tag.surface = expression
                     continue
         return sent 
@@ -37,17 +38,15 @@ class KoreanSentence:
     def strip(self, rules):
         if type(rules) is not list:
             rules = [rules]
-        rules = list(map(convert_rule, rules))
+        rules = convert_rule(rules)
         sent = deepcopy(self)
         def strip_one():
-            tag = sent.parsed[0]
             for rule in rules: 
-                if check_match(tag, rule):
+                if check_match(sent.parsed, rule)[0]:
                     sent.parsed.pop(0)
                     return True 
-            tag = sent.parsed[-1]
             for rule in rules: 
-                if check_match(tag, rule):
+                if check_match(sent.parsed[-1:], rule)[0]:
                     sent.parsed.pop()
                     return True
             return False

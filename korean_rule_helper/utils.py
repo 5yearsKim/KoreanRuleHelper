@@ -1,3 +1,4 @@
+from .config import wildcard
 
 josa_rule = {
     # tag: [True, False](종성 여부)
@@ -26,13 +27,32 @@ rule_default = {
 def tags2strlist(tags):
     return list(map(lambda tag: str(tag), tags))
 
-def convert_rule(rule):
-    template = rule_default.copy()
-    if type(rule) is str:
-        return rule
-    elif type(rule) is dict:
-        template.update(rule)
-    return template
+def split_wildcard(s, wildcard):
+    holder = []
+    j = 0
+    for i in range(len(s)):
+        if s[i] == wildcard:
+            if i > j:
+                holder.append(s[j:i])
+            holder.append(wildcard)
+            j = i + 1
+    if len(s) > j:
+        holder.append(s[j:])
+    holder = list(map(lambda s: s.strip(), holder))
+    return holder
+        
+
+def convert_rule(rules):
+    holder = []
+    for rule in rules:
+        if type(rule) is str:
+            rule = split_wildcard(rule, wildcard)
+            holder.extend(rule)
+        elif type(rule) is dict:
+            template = rule_default.copy()
+            template.update(rule)
+            holder.append(template)
+    return holder 
 
 def is_common_pos(cand_pos, rule_pos):
     for rp in rule_pos:
@@ -43,7 +63,7 @@ def is_common_pos(cand_pos, rule_pos):
 
 def check_match(parsed_list, rule, space_sensitive=False):
     if isinstance(rule, str):
-        is_match, new_parsed_list = check_str_match(parsed_list, rule, space_sensitive=False)
+        is_match, new_parsed_list = check_str_match(parsed_list, rule, space_sensitive=space_sensitive)
         return is_match, new_parsed_list
     else:
         is_match = check_rule_match(parsed_list[0], rule)
@@ -77,6 +97,8 @@ def check_rule_match(parsed_item, rule_item):
     return True
 
 def check_str_match(parsed_list, rule, space_sensitive=False):
+    if rule == wildcard:
+        return True, parsed_list[1:]
     if space_sensitive:
         rule = rule.strip()
     else:
