@@ -38,7 +38,15 @@ def test_order_one():
                 '내가 뭐라고 말하는 것 조차 싫고 이렇게 하는 것 조차 싫다.',
             ],
             ['내가', {'return': True}, '조차', '싫다', {'pos': 'SF', 'optional': True}]
+        ),
+        (
+            [
+                '너는 치킨 좋아해?',
+                '너 치킨 좋아해?',
+            ],
+            ['너', {'pos': 'JX', 'optional': True}, {'return': True},'좋아해?'],
         )
+
     ]
     for sent_list, rule in tester:
         print(rule)

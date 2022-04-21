@@ -89,7 +89,7 @@ class KoreanRuleHelper:
                     is_rp_match, rp_args = helper(next_p_list, r_list[2:])
                     if is_rp_match:
                         if is_return(r):
-                            return True, rp_args + [arg]
+                            return True, [arg] + rp_args
                         else:
                             return True, rp_args
                     else:
