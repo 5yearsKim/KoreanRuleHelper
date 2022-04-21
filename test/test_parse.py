@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from korean_rule_helper import KoreanSentence
 
-sent = '나는 명박이의 친구'
+sent = '나는 명박이의 친구?'
 sent = KoreanSentence(sent)
 
 print(sent.parsed)

@@ -18,51 +18,38 @@ pp = pprint.PrettyPrinter(indent=4)
 def test_order_one():
     tester = [
         (
+            [
             '내 꿈은 과학자야.',
-            [{'surface': '나', 'return': True}, {'pos': 'N', 'return': True }, {'!pos':['J', 'E', 'S'], 'return': True} ],
+            ],
+            [{'surface': '나'}, {'pos': 'N', 'return': True }, {'pos': 'JX'}, {'!pos':['J', 'E', 'S'], 'return': True} ],
         ),
-        (
-            '내 꿈은 사실 정말 대단한 과학자야.',
-            [{'surface': '나', 'return': True}, {'pos': 'N', 'return': True }, {'!pos':['J', 'E', 'S'], 'return': True} ],
-        ),
-        (
-            '너 내 이름이 뭔지 알아?',
-            [{'surface': '내', 'pos': 'NP'}, {'pos': 'NNG', 'return': True}, {'surface': '뭐', 'pos': 'NP'}, {'surface': '알', 'pos': 'VV'}]
-        ),
-        (
-            '너 내 이름이 뭔지 아니?',
-            [{'surface': '내', 'pos': 'NP'}, {'pos': 'NNG', 'return': True}, {'surface': '뭐', 'pos': 'NP'}, {'surface': '알', 'pos': 'VV'}]
-        ),
-        (
-            '내 꿈 내 꿈 내 꿈',
-            ['내', '꿈', '내', {'surface': '꿈','pos': 'N', 'is_last': True, 'return': True}]
-        ),
-        (
-            '너 내 이름 뭔지 알아?',
-            ['너내', {'return': True}, {'surface': '알'}],
-        ),
-        (
-            '너 내 이름 뭔지 알아?',
-            ['너 내', {'return': True}, '알아?'],
-        ),
-        (
-            '너 내 이름이 뭔지 알아?',
+        (   [
+                '너 내 이름이 뭔지 알아?',
+                '너 내 이름 뭔지 알아?',
+                '이름 알아?',
+                '너 내 이름 알아?',
+            ],
             ['너 내 이름', {'pos': 'J', 'optional': True}, {'return': True}, '알아?']
         ),
         (
-            '근데 너 내 이름이 뭔지 알아?',
-            ['* 내 이름', {'pos': 'J', 'optional': True}, {'return': True}, '알아?']
-        ),
-        (   '너는 고기를 좋아해?',
-            ['너', {'pos': 'JX', 'optional': True},  {'return': True}, '좋아해?']
+            [
+                '내가 잘 사는 것 조차 싫다',
+                '내가 조차라고 말하는 것 조차 싫다',
+                '내가 뭐라고 말하는 것 조차 싫고 이렇게 하는 것 조차 싫다.',
+            ],
+            ['내가', {'return': True}, '조차', '싫다', {'pos': 'SF', 'optional': True}]
         )
     ]
-    for sent, rule in tester:
-        print(rh.parse(sent))
-        sent = KoreanSentence(sent)
-        result = rh.match(sent, rule, return_str=True)
-        print(result, '$')
-        print('---------------------')
+    for sent_list, rule in tester:
+        print(rule)
+        print('*'*30)
+        for sent in sent_list:
+            print(sent)
+            sent = KoreanSentence(sent)
+            result = rh.match(sent, rule, return_str=True)
+            print('$', result)
+            print('-'*30)
+        print('&'*30)
 
 
 if __name__ == '__main__':

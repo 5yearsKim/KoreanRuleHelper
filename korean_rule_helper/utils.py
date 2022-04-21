@@ -14,9 +14,6 @@ josa_rule = {
 
 rule_default = {
     'surface': None, # str | [str]
-    'is_first': False, 
-    'is_last': False,
-    # 'is_concat': False,
     'pos': None, # str | [str]
     '!pos': None, # str | [str]
     'return': False,
@@ -61,16 +58,33 @@ def is_common_pos(cand_pos, rule_pos):
                 return True
     return False 
 
+def is_star(rule):
+    if rule == '*':
+        return True
+    try:
+        return rule['return']
+    except:
+        return False
+
 def check_match(parsed_list, rule, space_sensitive=False):
     if isinstance(rule, str):
         is_match, new_parsed_list = check_str_match(parsed_list, rule, space_sensitive=space_sensitive)
         return is_match, new_parsed_list
     else:
+        '''
+        o m result
+        x x F
+        x o T, p[1:]
+        o x T, p[:]
+        o o T, p[1:]
+        '''
         is_match = check_rule_match(parsed_list[0], rule)
         if is_match:
-            return is_match, parsed_list[1:]
+            return True, parsed_list[1:]
+        elif rule['optional']:
+            return True, parsed_list
         else:
-            return is_match, None
+            return False, None
 
 def check_rule_match(parsed_item, rule_item):
     to_list = lambda x : [x] if type(x) is not list else x
@@ -98,7 +112,7 @@ def check_rule_match(parsed_item, rule_item):
 
 def check_str_match(parsed_list, rule, space_sensitive=False):
     if rule == wildcard:
-        return True, parsed_list[1:]
+        return True, [] 
     if space_sensitive:
         rule = rule.strip()
     else:
