@@ -1,63 +1,65 @@
-from lib2to3.pytree import convert
-from .parser import Parser
-from .utils import convert_rule, check_match, tags2strlist
 from copy import deepcopy
+from typing import TypeVar
+from .parser import Parser, Tag
+from .rule import Rule
+from .utils import convert_rule 
 
-parser = Parser()
+
+TKoreanSentence = TypeVar('TKoreanSentence', bound='KoreanSentence')
 
 class KoreanSentence:
-    def __init__(self, sentence):
-        self.parsed = parser(sentence)
+    parser: Parser = Parser()
+
+    def __init__(self, sentence: str) -> None:
+        self.tags = self.parser(sentence)
         self.original = sentence
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'KoreanSentence({self.text})'
 
-    def __add__(self, obj):
-        sent = deepcopy(self)
-        sent.original = sent.original + obj.original
-        sent.parsed = sent.parsed + obj.parsed
-        return sent
+    # def __add__(self, obj):
+    #     sent = deepcopy(self)
+    #     sent.original = sent.original + obj.original
+    #     sent.tags = sent.tags + obj.parsed
+    #     return sent
 
+    @property
+    def text(self) -> str:
+        surfaces = list(map(lambda tag: tag.surface, self.tags))
+        return ''.join(surfaces)
 
-    def parse(self, sent):
-        return parser(sent)
+    def parse(self, sent: str) -> list[Tag] :
+        return self.parser(sent)
 
-    def replace(self, rules, expression):
-        if type(rules) is not list:
+    def replace(self, rules: list[Rule]|Rule, expression: str) -> TKoreanSentence:
+        if isinstance(rules, Rule):
             rules = [rules]
-        rules = convert_rule(rules)
         sent = deepcopy(self)
-        for tag in sent.parsed:
+        for tag in sent.tags:
             for rule in rules: 
-                if check_match([tag], rule)[0]:
+                if rule.check_match([tag], space_sensitive=True)[0]:
                     tag.surface = expression
-                    continue
+                    break 
         return sent 
     
-    def strip(self, rules):
-        if type(rules) is not list:
+    def strip(self, rules: list[Rule]|Rule) -> TKoreanSentence:
+        if isinstance(rules, Rule):
             rules = [rules]
-        rules = convert_rule(rules)
         sent = deepcopy(self)
         def strip_one():
             for rule in rules: 
-                if check_match(sent.parsed, rule)[0]:
-                    sent.parsed.pop(0)
+                if rule.check_match(sent.tags)[0]:
+                    sent.tags.pop(0)
                     return True 
             for rule in rules: 
-                if check_match(sent.parsed[-1:], rule)[0]:
-                    sent.parsed.pop()
+                if rule.check_match(sent.tags[-1:], rule)[0]:
+                    sent.tags.pop()
                     return True
             return False
-        while len(sent.parsed) > 0 and strip_one():
+        while len(sent.tags) > 0 and strip_one():
             pass
         return sent 
 
 
-    @property
-    def text(self):
-        parsed = tags2strlist(self.parsed)
-        return ''.join(parsed)
 
         

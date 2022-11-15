@@ -1,2 +1,3 @@
-python-mecab-ko
-hgtk
+python-mecab-ko==1.0.14
+hgtk==0.1.3
+six==1.16.0

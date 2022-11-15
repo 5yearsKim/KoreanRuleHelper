@@ -1,1 +1,1 @@
-wildcard = '*'
+WILDCARD= '*'
