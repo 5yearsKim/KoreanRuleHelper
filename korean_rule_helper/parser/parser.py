@@ -1,5 +1,5 @@
-from mecab import MeCab
 from .tag import Tag
+from .mecab import SimpleMecab
 
 class ParserError(Exception):
     pass
@@ -7,7 +7,7 @@ class ParserError(Exception):
 
 class Parser:
     def __init__(self) -> None:
-        self.mecab: MeCab = MeCab()
+        self.mecab = SimpleMecab()
 
     def __call__(self, sent: str) -> list[Tag]:
         if sent == ' ':

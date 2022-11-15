@@ -1,6 +1,4 @@
-from typing import TypeVar
-
-TTag = TypeVar('TTag', bound='Tag')
+from __future__ import annotations
 
 class Tag:
     def __init__(self, surface: str, pos: str, has_jongseong: bool=False, expression: str|None=None) -> None:
@@ -20,7 +18,7 @@ class Tag:
         else:
             return f'${self.surface}/{self.pos}'
 
-    def split_expression(self, expression: str) -> list[TTag]:
+    def split_expression(self, expression: str) -> list[Tag]:
         # expression='나/NP/*+의/JKG/*
         def exp2tag(exp: str) -> Tag:
             surf, pos, _ = exp.split('/')

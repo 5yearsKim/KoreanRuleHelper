@@ -1,50 +1,13 @@
-from typing import TypeVar
+from __future__ import annotations
+
 from .parser import Tag
 from .config import WILDCARD
-
-# rule_default = {
-#     'surface': None, # str | [str]
-#     'pos': None, # str | [str]
-#     '!pos': None, # str | [str]
-#     'return': False,
-#     'optional': False,
-# }
-
-
 
 class ImportRuleError(Exception):
     pass
 
 
-def split_wildcard(s: str, wildcard: str) -> list[str]:
-    holder = []
-    j = 0
-    for i in range(len(s)):
-        if s[i] == wildcard:
-            if i > j:
-                holder.append(s[j:i])
-            holder.append(wildcard)
-            j = i + 1
-    if len(s) > j:
-        holder.append(s[j:])
-    holder = list(map(lambda s: s.strip(), holder))
-    return holder
-
-TRule = TypeVar('TRule', bound='Rule')
-
 class Rule:
-    def transform(raws: list[str | dict[str, str|list[str]|bool|None]]) -> list[TRule]:
-        holder: list[Rule] = []
-        for raw in raws:
-            if isinstance(raw, str):
-                for piece in split_wildcard(raw, WILDCARD):
-                    rule = Rule().from_str(piece)
-                    holder.append(rule)
-            elif isinstance(raw, dict):
-                rule = Rule().from_dict(raw)
-                holder.append(rule)
-        return holder
-
     def __init__(self,
         surface: str|list[str]|None = None,
         pos: str|list[str]|None = None,
@@ -57,19 +20,20 @@ class Rule:
         self.npos = npos
         self.blank = blank
         self.optional = optional
+        self.is_str = False 
 
     def __repr__(self) -> str:
         contents: list[str]= [] 
-        if (self.surface):
-            contents.append(str(self.surface))
-        if (self.pos):
-            contents.append(str(self.pos))
-        if (self.npos):
-            contents.append(str(self.npos))
-        if (self.blank):
-            contents.append('blank')
-        if (self.optional):
-            contents.append('optional')
+        if self.surface:
+            contents.append(f'surface: {self.surface}')
+        if self.pos:
+            contents.append(f'pos: {self.pos}')
+        if self.npos:
+            contents.append(f'npos: {self.npos}')
+        if self.blank:
+            contents.append('[blank]')
+        if self.optional:
+            contents.append('[optional]')
         return f'Rule({",".join(contents)})'
 
     @property 
@@ -80,26 +44,11 @@ class Rule:
             return True
         return False
 
-    def from_str(self, raw: str) -> None:
-        self.surface = raw
-
-    def from_dict(self, raw: dict[str, str|list[str]|bool|None]) -> None:
-        if 'surface' in raw:
-            self.surface = raw['surface']
-        if 'pos' in raw:
-            self.pos = raw['pos']
-        if 'npos' in raw:
-            self.npos = raw['npos']
-        if 'blank' in raw:
-            self.blank = raw['blank']
-        if 'optional' in raw:
-            self.optional = raw['optional']
-
 
     def check_match(self, tags: list[Tag], space_sensitive: bool=False) -> tuple[bool, list[Tag]]:
         if not tags:
             return False, []
-        if self.surface:
+        if self.is_str:
             is_match, new_parsed_list = self._check_str_match(tags, space_sensitive=space_sensitive)
             return is_match, new_parsed_list
         else:
@@ -119,8 +68,8 @@ class Rule:
                 return False, [] 
 
 
-    def _check_str_match(self, tags: list[Tag], space_sensitive: bool=False):
-        assert self.surface is not None
+    def _check_str_match(self, tags: list[Tag], space_sensitive: bool=False) -> tuple[bool, list[Tag]]:
+        assert self.surface is not None and isinstance(self.surface, str)
         rule: str = self.surface
         if rule == WILDCARD:
             return True, [] 
@@ -141,11 +90,11 @@ class Rule:
             if rule.startswith(tag.surface) or tag.surface.startswith(rule):
                 rule = rule[len(tag.surface):]
             else:
-                return False, None
+                return False, [] 
         if rule == '':
             return True, tags[i+1:] # index + 1 when parsed match rule
         else:
-            return False, None
+            return False, [] 
 
     def judge_tag(self, tag: Tag) -> bool:
         # print(parsed_item, rule_item)
@@ -153,7 +102,7 @@ class Rule:
             if not x:
                 return []
             if isinstance(x, str):
-                return [str]
+                return [x]
             return x
 
         def is_common_pos(cand_pos: list[str], rule_pos: list[str]) -> bool:
@@ -184,4 +133,72 @@ class Rule:
                 return False
         return True
 
+    @staticmethod
+    def split_wildcard(s: str, wildcard: str) -> list[str]:
+        holder = []
+        j = 0
+        for i in range(len(s)):
+            if s[i] == wildcard:
+                if i > j:
+                    holder.append(s[j:i])
+                holder.append(wildcard)
+                j = i + 1
+        if len(s) > j:
+            holder.append(s[j:])
+        holder = list(map(lambda s: s.strip(), holder))
+        return holder   
 
+    @staticmethod
+    def transform(raws: list[str | dict[str, str|list[str]|bool|None]]) -> list[Rule]:
+        holder: list[Rule] = []
+        for raw in raws:
+            if isinstance(raw, str):
+                for piece in Rule.split_wildcard(raw, WILDCARD):
+                    rule = Rule.from_str(piece)
+                    holder.append(rule)
+            elif isinstance(raw, dict):
+                rule = Rule.from_dict(raw)
+                holder.append(rule)
+        return holder
+
+    @staticmethod    
+    def from_str(raw: str) -> Rule:
+        rule = Rule()
+        rule.surface = raw
+        rule.is_str = True
+        return rule
+
+    @staticmethod
+    def from_dict(raw: dict[str, str|list[str]|bool|None]) -> Rule:
+        rule = Rule()
+        if 'surface' in raw:
+            surface = raw['surface']
+            if isinstance(surface, str):
+                rule.surface = surface 
+            else:
+                raise TypeError(f'type {type(surface)} for surface is not allowed')
+        if 'pos' in raw:
+            pos = raw['pos']
+            if isinstance(pos, str) or isinstance(pos, list):
+                rule.pos = pos
+            else:
+                raise TypeError(f'type {type(pos)} for pos is not allowed')
+        if 'npos' in raw:
+            npos = raw['npos']
+            if isinstance(npos, str) or isinstance(npos, list):
+                rule.npos = npos
+            else:
+                raise TypeError(f'type {type(npos)} for npos is not allowed')
+        if 'blank' in raw:
+            blank = raw['blank']
+            if isinstance(blank, bool):
+                rule.blank = blank
+            else:
+                raise TypeError(f'type {type(blank)} for blank is not allowed')
+        if 'optional' in raw:
+            optional = raw['optional']
+            if isinstance(optional , bool):
+                rule.optional = optional
+            else:
+                raise TypeError(f'type {type(optional)} for optional is not allowed')
+        return rule

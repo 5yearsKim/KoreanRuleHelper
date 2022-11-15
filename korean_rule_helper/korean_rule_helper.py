@@ -1,5 +1,3 @@
-import hgtk
-from .utils import  josa_rule
 from .parser import Tag
 from .rule import Rule
 from .korean_sentence import KoreanSentence
@@ -20,20 +18,38 @@ class KoreanRuleHelper:
             if r_a.is_wc and r_b.is_wc:
                 raise KoreanRuleError('wildcard(*) following wildcard is not allowed', rules)
 
-    def match(self, sentence: KoreanSentence, rules: list[Rule], return_str: bool=True):
+    def match(self, sentence: KoreanSentence, rules: list[Rule], return_str: bool=True) -> tuple[bool, list[list[Tag]] | list[str]]:
+        """ Checking if sentence follow the order of given rlues
+        - Argument
+        sentence: KoreanSentence (Sentence parsed with tagger)
+        rules: list[Rule] (List of custom rules)
+        - Return
+        result, arg : tuple[bool, list[str]]
+        arg contains value for blank rule
+        """
         tags = sentence.tags
         self._precheck_rules(rules)
         result, arg = self._match(tags, rules)
-        # if arg and return_str:
-        #     arg = list(map(lambda s: ''.join(tags2strlist(s)).strip(), arg))
-        return result, arg
+        if arg and return_str:
+            def tags2str(tags: list[Tag]) -> str:
+                holder = []
+                for tag in tags:
+                    holder.append(tag.surface)
+                return ''.join(holder)
+            str_arg = list(map(lambda s: ''.join(tags2str(s)).strip(), arg))
+            return result, str_arg
+        else:
+            return result, arg
 
     ################
     #pppppp parsed
     #rrrrrr rule
     ################
-    def _match(self, tags: list[Tag], rules: list[Rule]):
-        def helper(p_list: list[Tag], r_list: list[Rule]) -> tuple[bool, list[Tag]]:
+    def _match(self, tags: list[Tag], rules: list[Rule]) -> tuple[bool, list[list[Tag]]]:
+        def helper(p_list: list[Tag], r_list: list[Rule]) -> tuple[bool, list[list[Tag]]]:
+            # print(p_list)
+            # print(r_list)
+            # print('--------------------------')
             if not r_list and not p_list:
                 return True, []
             if not r_list and p_list:
@@ -95,13 +111,3 @@ class KoreanRuleHelper:
                 return False, [] 
         return helper(tags, rules)
             
-    def add_josa(self, word, type='I_X'):
-        if type not in josa_rule.keys():
-            raise ValueError(f'type {type} not in {josa_rule.keys()}')
-        js, njs = josa_rule[type]
-        letter = word.strip()[-1]
-        has_js = hgtk.checker.is_hangul(letter) and hgtk.text.decompose(letter)[2] != hgtk.text.DEFAULT_COMPOSE_CODE
-        if has_js:
-            return word + js
-        else:
-            return word + njs
