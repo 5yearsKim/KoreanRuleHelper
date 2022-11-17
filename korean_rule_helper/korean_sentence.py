@@ -5,7 +5,6 @@ from .parser import Parser, Tag
 from .rule import Rule
 
 
-
 class KoreanSentence:
     parser: Parser = Parser()
 
