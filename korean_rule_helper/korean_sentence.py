@@ -1,6 +1,6 @@
 from __future__ import annotations
 from copy import deepcopy
-from typing import TypeVar
+from typing import Callable
 from .parser import Parser, Tag
 from .rule import Rule
 
@@ -38,7 +38,16 @@ class KoreanSentence:
                 if rule.check_match([tag], space_sensitive=True)[0]:
                     tag.surface = expression
                     break 
-        return sent 
+        return sent
+
+    def filter(self, filter: Callable[[Tag], bool]) -> KoreanSentence:
+        new_tags = []
+        sent = deepcopy(self)
+        for tag in sent.tags:
+            if filter(tag):
+                new_tags.append(tag)
+        sent.tags = new_tags
+        return sent
     
     def strip(self, rules: list[Rule]|Rule) -> KoreanSentence:
         _rules: list[Rule] = [rules] if isinstance(rules, Rule) else rules
