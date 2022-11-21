@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from korean_rule_helper import KoreanSentence
 # sent = '진짜?'
-sent = '너 내 이름이 뭐야?'
+sent = '너는 동생이 정말 있니?'
 sent = KoreanSentence(sent)
 
 print(sent.tags)

@@ -17,8 +17,8 @@ pp = pprint.PrettyPrinter(indent=4)
 def test_order_one():
     tester = [
         (
-            ['내 이름은 김치야'],
-            ['내', {'blank': True, 'pos': 'N'}, '김치*']
+            ['내 이름은 고기'],
+            ['내 이름은 ', {'blank': True, 'pos': ['NN']}]
         ),
         (
             [

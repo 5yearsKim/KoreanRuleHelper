@@ -26,4 +26,6 @@ class JosaHelper:
             return word + js
         else:
             return word + njs
+        
+    
 

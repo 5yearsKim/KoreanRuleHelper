@@ -18,7 +18,7 @@ class KoreanRuleHelper:
             if r_a.is_wc and r_b.is_wc:
                 raise KoreanRuleError('wildcard(*) following wildcard is not allowed', rules)
 
-    def match(self, sentence: KoreanSentence, rules: list[Rule], return_str: bool=True) -> tuple[bool, list[list[Tag]] | list[str]]:
+    def match(self, sentence: KoreanSentence, rules: list[Rule]) -> tuple[bool, list[str]]:
         """ Checking if sentence follow the order of given rlues
         - Argument
         sentence: KoreanSentence (Sentence parsed with tagger)
@@ -27,19 +27,22 @@ class KoreanRuleHelper:
         result, arg : tuple[bool, list[str]]
         arg contains value for blank rule
         """
+        def tags2str(tags: list[Tag]) -> str:
+            holder = []
+            for tag in tags:
+                holder.append(tag.surface)
+            return ''.join(holder)
         tags = sentence.tags
         self._precheck_rules(rules)
         result, arg = self._match(tags, rules)
-        if arg and return_str:
-            def tags2str(tags: list[Tag]) -> str:
-                holder = []
-                for tag in tags:
-                    holder.append(tag.surface)
-                return ''.join(holder)
-            str_arg = list(map(lambda s: ''.join(tags2str(s)).strip(), arg))
-            return result, str_arg
-        else:
-            return result, arg
+        str_arg = list(map(lambda s: ''.join(tags2str(s)).strip(), arg))
+        return result, str_arg
+
+    def match_original(self, sentence: KoreanSentence, rules: list[Rule]) -> tuple[bool, list[list[Tag]]]:
+        tags = sentence.tags
+        self._precheck_rules(rules)
+        result, arg = self._match(tags, rules)
+        return result, arg
 
     ################
     #pppppp parsed
