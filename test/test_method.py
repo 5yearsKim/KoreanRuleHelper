@@ -31,7 +31,7 @@ def test_strip():
     print(new_sent)
 
 def test_add_josa():
-    from korean_rule_helper.utils import josa_rule
+    from korean_rule_helper.josa_helper import josa_rule
     import random
     js_list = ['가방', '설립', '소진', '상담', '돌']
     njs_list = ['현우', '지우', '수리', '장비', '희']

@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 def parse_requirements(requirements):
     with open(requirements) as f:
@@ -13,15 +13,15 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name='korean_rule_helper',
-    version='0.0.6',
+    version='0.0.8',
     author='5yearsKim',
     author_email='hypothesis22@gmail.com',
-    url='https://github.com/5yearsKim/koreanRuleHelper',
+    url='https://github.com/5yearsKim/KoreanRuleHelper',
     project_url='https://pypi.org/project/korean-rule-helper/',
     description='한국어 rule-based 처리를 간단히',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    packages=['korean_rule_helper'],
+    packages=find_packages(),
     install_requires=reqs,
     # package_data={
     #   '': ['data/*']

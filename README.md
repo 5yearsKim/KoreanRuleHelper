@@ -1,4 +1,7 @@
- korean-rule-helper
+# korean-rule-helper
+
+<br>
+
 ### 한국어 rule-based 처리할 때 활용할 수 있는 패키지
 * 품사 태그를 활용한 문장 구조 및 분석
 * 한국어 규칙 적용
@@ -6,12 +9,15 @@
 ## Installation
 
 ### dependency
+* python >=3.10
 * [python-mecab-ko](https://pypi.org/project/python-mecab-ko/) 패키지 설치(링크 참조)
+
 
 Using `pip`
 ```
 pip install korean-rule-helper
 ```
+<br>
 
 ## Usage
 <hr/>
@@ -26,6 +32,8 @@ sentence = KoreanSentence('나는 너를 사랑한다.')
 print(sentence.parsed) #[$나/NP, $는/JX, $_, $너/NP, $를/JKO, $_, $사랑/NNG, $한다($하/XSV, $ᆫ다/EF)/XSV+EF, $./SF]
 print(sentence.text) # 나는 너를 사랑한다.
 ```
+<br>
+
 **Rule**
 
 *rule 은 python dict 형태로 표현되며 해당하는 형태소의 품사, 표현형 등을 체크할 수 있습니다. default 값은 아래와 같습니다.*
@@ -83,7 +91,7 @@ print(rule) # [Rule(surface: 과자), Rule(pos: ['N', 'V'])]
 
 
 ```python
-import KoreanSentence, KoreanRuleHelper
+from korean_rule_helper import KoreanSentence, Rule
 ```
 
 ### replace
@@ -92,12 +100,12 @@ import KoreanSentence, KoreanRuleHelper
 # replace
 sentence = KoreanSentence('문재인은 19대 대통령이다.')
 
-rule = {'surface': '다', 'pos': 'EF'}
+rule = Rule.from_dict({'surface': '다', 'pos': 'EF'})
 sentence = sentence.replace(rule, '에요')
 print(sentence.text) # 문재인은 19대 대통령이에요.
 
 
-rule = {'pos': 'NNP'}
+rule = Rule.from_dict({'pos': 'NNP'})
 sentence = sentence.replace(rule, '000')
 print(sentence.text) # 000은 19대 대통령이에요.
 ```
@@ -105,6 +113,8 @@ print(sentence.text) # 000은 19대 대통령이에요.
 ### strip
 *문장의 앞 뒤 형태소를 조건에 맞게 잘라냅니다.*
 ```python
+from korean_rule_helper import KoreanSentence
+
 sentence = KoreanSentence('박근혜는 18대 대통령이다.')
 
 rules = [{'surface': '.', 'pos': 'S'}, '박근혜', '는'] # multiple rule
@@ -116,6 +126,7 @@ sentence = sentence.strip(rule)
 print(sentence.text) #  18대 대통령이 
 ```
 
+<br>
 
 ## KoreanRuleHelper
 <hr/>
@@ -124,6 +135,8 @@ print(sentence.text) #  18대 대통령이
 *문장이 형태소를 조건에 맞는 순서로 포함하고 있는지 여부를 체크합니다.*
 
 ```python
+from korean_rule_helper import KoreanRuleHelper
+
 rh = KoreanRuleHelper()
 sentence = KoreanSentence('내 이름은 김치야')
 
@@ -177,6 +190,7 @@ print(josa_word) # 사과와
 ```
 
 
+<br>
 
 ## 품사 태그 비교 표
 
